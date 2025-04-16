@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="author" content="Suzette-Nicole Young" />
+  <meta name="description" content="VIN Warrior Princess 50-Question Web Development Study Quiz with Timer and Interactive Feedback" />
+  <meta name="keywords" content="HTML, CSS, JavaScript, jQuery, Web Development Quiz, Study Tool, VIN Warrior Princess, Tech Certification, Beginner Front-End Developer" />
+  <meta name="date" content="2025-04-17" />
+  <title>VIN Warrior Princess Study Quiz</title>
+
+  <!-- Font Awesome Icons -->
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <!-- ========== Internal CSS ========== -->
+  <style>
+    /* === BODY STYLES === */
+    body {
+      font-family: 'Trebuchet MS', sans-serif;
+      background: #fff5fa url('images/Background.png') no-repeat center center fixed;
+      background-size: contain;
+      padding: 20px;
+      color: #333;
+    }
+
+    /* === MAIN CONTAINER === */
+    .quiz-container {
+      max-width: 800px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      padding: 30px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #8e44ad;
+      margin-bottom: 20px;
+    }
+
+    #timer, .question-count {
+      font-size: 16px;
+      text-align: right;
+      color: #a52a2a;
+      margin-bottom: 10px;
+    }
+
+    .question {
+      font-size: 20px;
+      margin: 20px 0 10px;
+    }
+
+    select {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+    }
+
+    .hint {
+      display: none;
+      font-style: italic;
+      margin-top: 10px;
+    }
+
+    .hint.wrong {
+      color: red;
+    }
+
+    .hint.correct {
+      color: green;
+    }
+
+    #next-button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #8e44ad;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    #encouragement {
+      display: none;
+      font-weight: bold;
+      margin-top: 20px;
+      color: #8e44ad;
+      font-size: 18px;
+    }
+
+    #result {
+      display: none;
+      text-align: center;
+      margin-top: 30px;
+    }
+
+    .trophy {
+      font-size: 80px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .gold { color: #ffd700; text-shadow: 0 0 10px #ffd700; }
+    .silver { color: #c0c0c0; text-shadow: 0 0 8px #c0c0c0; }
+    .bronze { color: #cd7f32; text-shadow: 0 0 6px #cd7f32; }
+  </style>
+</head>
+<body>
+
+<!-- ========== QUIZ LAYOUT ========== -->
+<div class="quiz-container">
+  <h1>VIN Warrior Princess Study Quiz</h1>
+  <div id="timer">Time Left: 30:00</div>
+  <div class="question-count" id="progress">Question 1 of 50</div>
+  <div class="question" id="question-text"></div>
+
+  <select id="answer-options">
+    <option value="">Select an answer</option>
+  </select>
+
+  <div class="hint" id="hint"></div>
+  <div id="encouragement"><i class="fas fa-star"></i> You're doing great, Warrior Princess!</div>
+  <button id="next-button">Next</button>
+
+  <!-- ========== FINAL SCORE RESULT AREA ========== -->
+  <div id="result">
+    <div id="trophy-icon" class="trophy"></div>
+    <h2 id="final-message"></h2>
+    <p id="study-tips"></p>
+  </div>
+</div>
+<script>
+    // ============================ QUESTIONS ARRAY ============================
+    const questions = [
+      { question: "What does HTML stand for?", options: ["Hyper Text Markup Language", "Home Tool Markup Language", "Hyperlinks and Text Management Language", "Hyper Tool Management Language"], answer: "Hyper Text Markup Language" },
+      { question: "Which tag is used to create a hyperlink?", options: ["&lt;a&gt;", "&lt;link&gt;", "&lt;href&gt;", "&lt;url&gt;"], answer: "&lt;a&gt;" },
+      { question: "What is the correct syntax for a line break in HTML?", options: ["&lt;br /&gt;", "&lt;break&gt;", "&lt;lb&gt;", "&lt;linebreak&gt;"], answer: "&lt;br /&gt;" },
+      { question: "Which element defines the largest heading?", options: ["&lt;h1&gt;", "&lt;head&gt;", "&lt;heading&gt;", "&lt;h6&gt;"], answer: "&lt;h1&gt;" },
+      { question: "How can you make a numbered list?", options: ["&lt;ol&gt;", "&lt;ul&gt;", "&lt;li&gt;", "&lt;list&gt;"], answer: "&lt;ol&gt;" },
+      { question: "Where is the &lt;title&gt; tag placed?", options: ["Inside &lt;head&gt;", "Inside &lt;body&gt;", "After &lt;meta&gt;", "Anywhere"], answer: "Inside &lt;head&gt;" },
+      { question: "Which tag is used to display an image?", options: ["&lt;img&gt;", "&lt;pic&gt;", "&lt;image&gt;", "&lt;src&gt;"], answer: "&lt;img&gt;" },
+      { question: "What attribute is used to specify image path in &lt;img&gt;?", options: ["src", "href", "link", "path"], answer: "src" },
+      { question: "What is the purpose of &lt;div&gt;?", options: ["Group content", "Bold text", "Link to page", "Break line"], answer: "Group content" },
+      { question: "Which tag creates a table row?", options: ["&lt;tr&gt;", "&lt;row&gt;", "&lt;td&gt;", "&lt;table-row&gt;"], answer: "&lt;tr&gt;" },
+  
+      // Encouragement 1
+      { question: "What does the &lt;form&gt; tag do?", options: ["Collects user input", "Creates a table", "Displays images", "Links file"], answer: "Collects user input" },
+      { question: "Which input type accepts email format?", options: ["Valid email format", "Any text", "Only numbers", "Images"], answer: "Valid email format" },
+      { question: "What does the placeholder attribute do?", options: ["Displays a hint", "Auto-fills", "Adds image", "Submits"], answer: "Displays a hint" },
+      { question: "How do you make a checkbox?", options: ["&lt;input type='checkbox'&gt;", "&lt;checkbox&gt;", "&lt;check&gt;", "&lt;input checkbox&gt;"], answer: "&lt;input type='checkbox'&gt;" },
+      { question: "Which attribute shows a tooltip?", options: ["title", "tooltip", "alt", "href"], answer: "title" },
+      { question: "Which tag is used for list items?", options: ["&lt;li&gt;", "&lt;ul&gt;", "&lt;ol&gt;", "&lt;item&gt;"], answer: "&lt;li&gt;" },
+      { question: "What does &lt;iframe&gt; do?", options: ["Embeds a page", "Creates popup", "Adds captions", "Adds table"], answer: "Embeds a page" },
+      { question: "Which tag emphasizes text?", options: ["&lt;em&gt;", "&lt;strong&gt;", "&lt;b&gt;", "&lt;u&gt;"], answer: "&lt;em&gt;" },
+      { question: "Correct syntax for a comment in HTML?", options: ["&lt;!-- comment --&gt;", "// comment", "/* comment */", "# comment"], answer: "&lt;!-- comment --&gt;" },
+      { question: "Which is a semantic HTML tag?", options: ["&lt;article&gt;", "&lt;div&gt;", "&lt;span&gt;", "&lt;b&gt;"], answer: "&lt;article&gt;" },
+  
+      // Encouragement 2
+      { question: "What does CSS stand for?", options: ["Cascading Style Sheets", "Color Style Syntax", "Creative Styling", "Computer Styled Syntax"], answer: "Cascading Style Sheets" },
+      { question: "How do you apply a style to all &lt;p&gt; tags?", options: ["p {}", "#p {}", ".p {}", "&lt;p&gt; {}"], answer: "p {}" },
+      { question: "What symbol is used for class selectors?", options: [".", "#", ":", "@"] , answer: "." },
+      { question: "Which CSS property changes text color?", options: ["color", "text", "text-color", "font-style"], answer: "color" },
+      { question: "Which unit is relative to font size?", options: ["em", "px", "vh", "%"], answer: "em" },
+      { question: "What does margin control?", options: ["Space outside", "Text size", "Space inside", "Border style"], answer: "Space outside" },
+      { question: "CSS for underline text?", options: ["text-decoration", "underline", "font-style", "line-style"], answer: "text-decoration" },
+      { question: "How do you make a background pink?", options: ["background-color: pink;", "bg-color: pink;", "color: pink;", "background:color=pink;"], answer: "background-color: pink;" },
+      { question: "Default HTML position?", options: ["Static", "Relative", "Fixed", "Absolute"], answer: "Static" },
+      { question: "Property to bold text in CSS?", options: ["font-weight: bold;", "font-bold", "weight: bold;", "text-style: bold;"], answer: "font-weight: bold;" },
+  
+      // Encouragement 3
+      { question: "Property that adds space between lines?", options: ["line-height", "spacing", "padding-top", "line-spacing"], answer: "line-height" },
+      { question: "Round corners in CSS?", options: ["border-radius", "box-shadow", "border-style", "outline"], answer: "border-radius" },
+      { question: "How to center text?", options: ["text-align: center;", "align-text: center;", "text: align-center;", "center: text;"], answer: "text-align: center;" },
+      { question: "Style a div by ID?", options: ["#hero {}", ".hero {}", "div.hero {}", "div:hero {}"], answer: "#hero {}" },
+      { question: "What is z-index used for?", options: ["Stacking layers", "Move element", "Zoom content", "Animate"], answer: "Stacking layers" },
+      { question: "What does var do in JS?", options: ["Declares variable", "Creates loop", "Defines function", "Checks condition"], answer: "Declares variable" },
+      { question: "JS comment syntax?", options: ["// comment", "&lt;!-- comment --&gt;", "# comment", "** comment"], answer: "// comment" },
+      { question: "Create a JS function?", options: ["function myFunc() {}", "create myFunc {}", "func myFunc {}", "myFunc = function[]"], answer: "function myFunc() {}" },
+      { question: "Log message in console?", options: ["console.log()", "console.write()", "log.console()", "print.log()"], answer: "console.log()" },
+      { question: "What does === mean?", options: ["Compare value + type", "Assignment", "Not equal", "Compare value only"], answer: "Compare value + type" },
+  
+      // Encouragement 4
+      { question: "jQuery symbol?", options: ["$", "#", "@", "&"], answer: "$" },
+      { question: "$(document).ready() means?", options: ["DOM ready", "Load page", "Submit form", "Create event"], answer: "DOM ready" },
+      { question: "jQuery to hide element?", options: ["$(element).hide();", "element.hide();", "hide(element);", "$(hide).element;"], answer: "$(element).hide();" },
+      { question: "Add class in jQuery?", options: ["addClass()", "setClass()", "classAdd()", "pushClass()"], answer: "addClass()" },
+      { question: "What does .val() do?", options: ["Gets/sets value", "Change color", "Scroll page", "Validate CSS"], answer: "Gets/sets value" },
+      { question: "Which event triggers button click?", options: ["click()", "hover()", "focus()", "load()"], answer: "click()" },
+      { question: "Append() does what?", options: ["Adds to end", "Replaces", "Deletes", "Adds before"], answer: "Adds to end" },
+      { question: "What is NaN in JS?", options: ["Not a Number", "Not a Node", "Not a Name", "Name and Number"], answer: "Not a Number" },
+      { question: "Which keyword stops a loop?", options: ["break", "return", "stop", "close"], answer: "break" },
+      { question: "Last encouragement — YOU DID IT!", options: ["Yes!", "Yes!", "Yes!", "Yes!"], answer: "Yes!" }
+    ];
+  
+    // ============================ QUIZ VARIABLES ============================
+    let currentQuestion = 0;
+    let score = 0;
+    let timer = 1800;
+    const timerInterval = setInterval(updateTimer, 1000);
+  
+    // ============================ TIMER FUNCTION ============================
+    function updateTimer() {
+      let minutes = Math.floor(timer / 60);
+      let seconds = timer % 60;
+      if (seconds < 10) seconds = "0" + seconds;
+      $("#timer").text(`Time Left: ${minutes}:${seconds}`);
+      timer--;
+      if (timer < 0) showResults();
+    }
+  
+    // ============================ DISPLAY EACH QUESTION ============================
+    function displayQuestion() {
+      $("#hint").hide().removeClass("correct wrong");
+      $("#encouragement").hide();
+      const q = questions[currentQuestion];
+      $("#question-text").html(q.question);
+      $("#answer-options").html('<option value="">Select an answer</option>');
+      q.options.forEach(opt => {
+        $("#answer-options").append(`<option value="${opt}">${opt}</option>`);
+      });
+      $("#progress").text(`Question ${currentQuestion + 1} of ${questions.length}`);
+  
+      if ((currentQuestion + 1) % 10 === 0 && currentQuestion !== 0) {
+        $("#encouragement").fadeIn().html(`<i class="fas fa-star"></i> Keep going, Warrior Princess!`);
+      }
+    }
+  
+    // ============================ FINAL SCORE ============================
+    function showResults() {
+      clearInterval(timerInterval);
+      $(".question, select, #next-button, #progress, #timer").hide();
+      $("#result").fadeIn();
+  
+      const percent = (score / questions.length) * 100;
+      let message = "", trophyClass = "", tips = "";
+  
+      if (percent >= 90) {
+        message = "Crowned Queen of Code!";
+        trophyClass = "trophy gold fas fa-trophy";
+      } else if (percent >= 70) {
+        message = "Silver Slayer—Great Job!";
+        trophyClass = "trophy silver fas fa-trophy";
+      } else if (percent >= 50) {
+        message = "Bronze Beginner—Keep Going!";
+        trophyClass = "trophy bronze fas fa-trophy";
+      } else {
+        message = "Don't Quit—You're in Training!";
+        trophyClass = "fas fa-heart text-danger";
+        tips = "Study Tip: Practice 15 minutes a day using flashcards and W3Schools!";
+      }
+  
+      $("#trophy-icon").attr("class", trophyClass);
+      $("#final-message").text(`Score: ${score}/${questions.length} - ${message}`);
+      $("#study-tips").text(tips);
+    }
+  
+    // ============================ NEXT BUTTON HANDLER ============================
+    $("#next-button").click(function () {
+      const selected = $("#answer-options").val();
+      if (selected === "") {
+        $("#hint").text("Please select an answer.").addClass("wrong").fadeIn();
+        return;
+      }
+  
+      // Decode HTML entities so dropdown values and answers match correctly
+function decodeHTML(html) {
+  const txt = document.createElement("textarea");
+  txt.innerHTML = html;
+  return txt.value;
+}
+
+const decodedSelected = decodeHTML(selected);
+const decodedAnswer = decodeHTML(questions[currentQuestion].answer);
+
+if (decodedSelected === decodedAnswer) {
+  score++;
+  $("#hint").text("Correct!").removeClass("wrong").addClass("correct").fadeIn();
+} else {
+  $("#hint").text("Oops! That wasn’t right—review this topic.").removeClass("correct").addClass("wrong").fadeIn();
+}
+
+  
+      currentQuestion++;
+      if (currentQuestion < questions.length) {
+        setTimeout(displayQuestion, 1000);
+      } else {
+        setTimeout(showResults, 1000);
+      }
+    });
+  
+    // ============================ START THE QUIZ ============================
+    displayQuestion();
+  </script>
+</body>
+</html>
